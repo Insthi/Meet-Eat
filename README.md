@@ -1,2 +1,2 @@
 # Meet-Eat
-Site culinaire basée sur des rencontre amicale et amoureuse. Projet scolaire
+Site culinaire basé sur des rencontres amicales et amoureuses. Projet scolaire
