@@ -1,0 +1,215 @@
+/* =============================
+   STYLE GLOBAL
+============================= */
+* { box-sizing: border-box; }
+
+body {
+    background-color: #660601;
+    color: #FDF5E6;
+    font-family: 'DM Sans', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5vw; /* Augmenté pour l'espace mobile */
+}
+
+/* =============================
+   CONTENEUR PRINCIPAL
+============================= */
+.conteneur-quiz {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    padding: 10px;
+}
+
+/* =============================
+   INTRODUCTION
+============================= */
+.introduction-quiz {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1.5rem, 5vw, 3rem);
+}
+
+.texte-introduction {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    line-height: 1.6;
+    max-width: 520px;
+    text-align: left;
+    color: #FDF5E6;
+    opacity: 0.95;
+    margin-bottom: 1rem;
+}
+
+/* =============================
+   QUESTION
+============================= */
+.question-quiz {
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
+    font-weight: 600;
+    margin-bottom: clamp(1.5rem, 6vw, 2.5rem);
+    line-height: 1.3;
+}
+
+/* =============================
+   RÉPONSES
+============================= */
+.liste-reponses {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.8rem, 3vw, 1.2rem);
+}
+
+.reponse {
+    background-color: #F5EDEB;
+    border-radius: 50px;
+    padding: clamp(0.8rem, 4vw, 1.2rem) clamp(1rem, 5vw, 1.5rem);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.25s ease;
+    display: block; /* Important pour le clic sur mobile */
+}
+
+.reponse span {
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    color: #4A1F1A;
+    font-weight: 500;
+}
+
+.reponse:hover { 
+    transform: scale(1.02); 
+    background-color: #E8D6D0; 
+}
+
+.reponse input { display: none; }
+
+/* Réponse sélectionnée */
+.reponse:has(input:checked) {
+    background-color: #D3A79B;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.167);
+    transform: scale(1.04);
+}
+
+/* =============================
+   NAVIGATION & BOUTONS
+============================= */
+.navigation-quiz {
+    margin-top: clamp(2rem, 8vw, 3rem);
+    display: flex;
+    justify-content: center;
+    gap: clamp(0.8rem, 4vw, 2rem);
+    align-items: center;
+}
+
+.bouton {
+    border-radius: 25px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    display: inline-block;
+}
+
+.bouton:active { transform: scale(0.95); }
+
+.bouton-principal {
+    background-color: #FDF5E6;
+    color: #660601;
+    padding: clamp(0.7rem, 3vw, 0.9rem) clamp(1.5rem, 6vw, 3rem);
+    font-size: clamp(0.95rem, 3.5vw, 1.05rem);
+}
+
+.bouton-secondaire {
+    background-color: transparent;
+    color: #FDF5E6;
+    border: 2px solid #FDF5E6;
+    padding: clamp(0.6rem, 2.5vw, 0.8rem) clamp(1rem, 5vw, 2rem);
+    font-size: clamp(0.85rem, 3vw, 0.95rem);
+}
+
+/* Debug resultats */
+.resultats-debug {
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: left;
+    font-size: 0.8rem;
+}
+
+/* =============================
+   AJUSTEMENTS SPÉCIFIQUES MOBILE
+============================= */
+@media (max-width: 480px) {
+    .conteneur-quiz {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem; /* Réduit de 2.5rem à 1.2rem pour tout rapprocher */
+        padding-top: 10px;
+    }
+
+    .question-quiz {
+        /* On réduit l'espace sous la question pour la rapprocher des boutons */
+        margin-bottom: 1.5rem; /* Réduit de 2.5rem à 1.5rem */
+        padding: 0 10px;
+    }
+
+    .liste-reponses {
+        gap: 1.2rem; /* Un poil plus serré pour gagner de la place */
+    }
+
+    .reponse {
+        padding: 1.1rem;
+    }
+
+    .navigation-quiz {
+        /* On garde un peu d'espace ici pour ne pas valider par erreur */
+        margin-top: 2rem; /* Réduit de 4rem à 2rem */
+    }
+}
+
+/* =============================
+   BARRE DE PROGRESSION
+============================= */
+.progression-container {
+    width: 100%;
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.progression-texte {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #FDF5E6;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.barre-fond {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(253, 245, 230, 0.2); /* Beige très transparent */
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.barre-remplissage {
+    height: 100%;
+    background-color: #FDF5E6; /* Beige plein */
+    border-radius: 10px;
+    transition: width 0.4s ease-out;
+}
+
+/* Ajustement mobile pour la barre */
+@media (max-width: 480px) {
+    .progression-container {
+        margin-bottom: 1rem;
+        padding: 0 5px;
+    }
+}
