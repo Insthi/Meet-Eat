@@ -1,0 +1,226 @@
+[
+  {
+    "id": 1,
+    "name": "Dans le Noir ?",
+    "address": "51 Rue Quincampoix, 75004 Paris",
+    "typeCuisine": "Cuisine française / expérience sensorielle",
+    "desc": "Dîner dans le noir complet pour éveiller les autres sens et vivre une expérience totalement différente de la restauration classique."
+  },
+  {
+    "id": 2,
+    "name": "Under the Sea",
+    "address": "Rue du 4 Septembre, 92130 Issy-les-Moulineaux",
+    "typeCuisine": "Cuisine européenne moderne / immersif",
+    "desc": "Restaurant immersif avec ambiance sous-marine, projections et sons pour une sensation d’être « sous l’eau »."
+  },
+  {
+    "id": 3,
+    "name": "Jungle Palace",
+    "address": "12 Rue de la Fidélité, 75010 Paris",
+    "typeCuisine": "Cuisine maison & exotique / immersif",
+    "desc": "Ambiance jungle luxuriante et plats exotiques dans un décor étonnant et immersif."
+  },
+  {
+    "id": 4,
+    "name": "Bustronome",
+    "address": "2 Avenue Kléber, 75016 Paris",
+    "typeCuisine": "Cuisine française contemporaine / expérience panoramique",
+    "desc": "Restaurant gastronomique à bord d’un bus panoramique traversant Paris, avec vues sur les monuments."
+  },
+  {
+    "id": 5,
+    "name": "Bus Toqué",
+    "address": "Paris (départs variables)",
+    "typeCuisine": "Cuisine gastronomique mobile",
+    "desc": "Dîner gastronomique dans un bus tout en visitant l’urbain parisien."
+  },
+  {
+    "id": 6,
+    "name": "Le Train Bleu",
+    "address": "Gare de Lyon, Pl. Louis Armand, 75012 Paris",
+    "typeCuisine": "Cuisine française traditionnelle / historique",
+    "desc": "Salle Belle-Époque monumentale avec décor somptueux et cuisine française classique."
+  },
+  {
+    "id": 7,
+    "name": "Au Pied de Cochon",
+    "address": "6 Rue Coquillière, 75001 Paris",
+    "typeCuisine": "Brasserie française iconique",
+    "desc": "Brasserie parisienne ouverte 24/7, célèbre pour ses plats classiques et son ambiance animée."
+  },
+  {
+    "id": 8,
+    "name": "Sacrée Fleur Montmartre",
+    "address": "50 Rue de Clignancourt, 75018 Paris",
+    "typeCuisine": "Cuisine française moderne",
+    "desc": "Bistrot charmant dans Montmartre avec une sélection de plats créatifs."
+  },
+  {
+    "id": 9,
+    "name": "Pierre Sang",
+    "address": "6 Rue Gambey ou 55 Rue Oberkampf, 75011 Paris",
+    "typeCuisine": "Fusion franco-coréenne / moderne",
+    "desc": "Cuisine créative sans menu fixe, inspirée par la fusion des saveurs."
+  },
+  {
+    "id": 10,
+    "name": "Pierre Sang Express",
+    "address": "25 Rue Oberkampf, 75011 Paris",
+    "typeCuisine": "Cuisine coréenne / street-food raffinée",
+    "desc": "Version rapide et abordable du concept fusion Pierre Sang."
+  },
+  {
+    "id": 11,
+    "name": "Le Wagon Bleu",
+    "address": "7 Rue Boursault, 75017 Paris",
+    "typeCuisine": "Cuisine française & méditerranéenne / train historique",
+    "desc": "Dans un wagon d’Orient-Express rénové, ambiance rétro unique."
+  },
+  {
+    "id": 12,
+    "name": "La Grenouillère",
+    "address": "19 Rue de la Grenouillère, 62170 La Madelaine-sous-Montreuil",
+    "typeCuisine": "Haute cuisine française / gastronomique étoilé",
+    "desc": "Restaurant reconnu internationalement par le chef Alexandre Gauthier, cuisine inventive autour du terroir du Nord."
+  },
+  {
+    "id": 13,
+    "name": "Arborescence",
+    "address": "76 Rue de la Gare, 59170 Croix",
+    "typeCuisine": "Cuisine gastronomique créative",
+    "desc": "Cuisine poétique et inspirée par les éléments naturels, ambiance gastronomique contemporaine."
+  },
+  {
+    "id": 14,
+    "name": "Les Pieds Bleus (Troglodyte)",
+    "address": "20 bis Rue Foulques Nerra, 49350 Gennes-Val-de-Loire",
+    "typeCuisine": "Cuisine troglodyte & régionale",
+    "desc": "Repas dans des galeries souterraines avec spécialités d’Anjou comme les fouées cuits au feu de bois."
+  },
+  {
+    "id": 15,
+    "name": "Le Lieu Unique",
+    "address": "2 Rue de la Biscuiterie, 44000 Nantes",
+    "typeCuisine": "Cuisine contemporaine / ancien site industriel",
+    "desc": "Dans l’ancienne biscuiterie LU, ambiance industrielle et créative autour du repas."
+  },
+  {
+    "id": 16,
+    "name": "Alaska Brocante & Snack",
+    "address": "Rennes",
+    "typeCuisine": "Cuisine bistrot / déco vintage",
+    "desc": "Bistrot installé dans une brocante rétro offrant un cadre original pour déjeuner ou dîner."
+  },
+  {
+    "id": 17,
+    "name": "La Table des Pionniers",
+    "address": "Chamonix (au sommet, accessible en téléphérique)",
+    "typeCuisine": "Cuisine de montagne / expérience altitude",
+    "desc": "Repas avec vue panoramique spectaculaire sur les montagnes."
+  },
+  {
+    "id": 18,
+    "name": "Le Refuge du Goûter",
+    "address": "Mont-Blanc (haute altitude)",
+    "typeCuisine": "Cuisine de montagne rustique",
+    "desc": "Restaurant d’altitude pour randonneurs, ambiance unique dans les Alpes."
+  },
+  {
+    "id": 19,
+    "name": "Bouchon lyonnais typique",
+    "address": "Lyon",
+    "typeCuisine": "Cuisine lyonnaise traditionnelle",
+    "desc": "Petite salle conviviale mettant à l’honneur spécialités locales (quenelles, tablier de sapeur)."
+  },
+  {
+    "id": 20,
+    "name": "Bouillabaisse portuaire",
+    "address": "Marseille",
+    "typeCuisine": "Cuisine méditerranéenne & fruits de mer",
+    "desc": "Plusieurs adresses célèbres autour du vieux port pour déguster la bouillabaisse provençale."
+  },
+  {
+    "id": 21,
+    "name": "Cassoulet & spécialités sud-ouest",
+    "address": "Toulouse",
+    "typeCuisine": "Cuisine régionale",
+    "desc": "Plats locaux traditionnels dans des restaurants toulousains typiques."
+  },
+  {
+    "id": 22,
+    "name": "Bar à vins & cannelés revisités",
+    "address": "Bordeaux",
+    "typeCuisine": "Cuisine régionale & vins",
+    "desc": "Bars à vin branchés combinant dégustations de vins bordelais et cuisine créative."
+  },
+  {
+    "id": 23,
+    "name": "Cuisine niçoise en bord de mer",
+    "address": "Nice",
+    "typeCuisine": "Cuisine méditerranéenne",
+    "desc": "Plats frais de la mer, socca, salade niçoise et autres spécialités."
+  },
+  {
+    "id": 24,
+    "name": "Winstub traditionnelle",
+    "address": "Strasbourg",
+    "typeCuisine": "Cuisine alsacienne",
+    "desc": "Ambiance chaleureuse et plats typiques (choucroute, baeckeoffe) dans une winstub."
+  },
+  {
+    "id": 25,
+    "name": "Influences méditerranéennes & tapas modernes",
+    "address": "Montpellier",
+    "typeCuisine": "Cuisine contemporaine méditerranéenne",
+    "desc": "Tapas & plats créatifs inspirés du sud de la France."
+  },
+  {
+    "id": 26,
+    "name": "Fruits de mer & surf-chic",
+    "address": "Biarritz",
+    "typeCuisine": "Cuisine basque & océanique",
+    "desc": "Restaurateurs surf-chic avec produits de la mer ultra-frais."
+  },
+  {
+    "id": 27,
+    "name": "Gastronomie bourguignonne innovante",
+    "address": "Dijon",
+    "typeCuisine": "Cuisine bourguignonne revisité",
+    "desc": "Plats traditionnels modernisés avec une touche créative."
+  },
+  {
+    "id": 28,
+    "name": "Cuisine portugaise réinventée",
+    "address": "Paris/banlieue",
+    "typeCuisine": "Cuisine portugaise contemporaine",
+    "desc": "Cantines modernes proposant feijoada, cozido ou bacalhau revisités."
+  },
+  {
+    "id": 29,
+    "name": "Bouillon historique",
+    "address": "Paris (Bouillon Julien)",
+    "typeCuisine": "Brasserie art nouveau",
+    "desc": "Parisien classique à prix abordable, décor art nouveau emblématique."
+  },
+  {
+    "id": 30,
+    "name": "Holybelly",
+    "address": "19 Rue Lucien Sampaix, 75010 Paris",
+    "typeCuisine": "Brunch & coffee / gourmand",
+    "desc": "Brunch généreux, café de spécialité et vibes décontractées."
+  },
+  {
+    "id": 31,
+    "name": "Season",
+    "address": "1 Rue Dupetit-Thouars, 75003 Paris",
+    "typeCuisine": "Brunch healthy / bowls",
+    "desc": "Brunch vitaminé : avocado toast, bowls, jus frais et options veggie."
+  },
+  {
+    "id": 32,
+    "name": "Kozy Bosquet",
+    "address": "79 Avenue Bosquet, 75007 Paris",
+    "typeCuisine": "Brunch & pâtisserie / cosy",
+    "desc": "Brunch cosy avec pancakes, pâtisseries et boissons maison."
+  }
+]

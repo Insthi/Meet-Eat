@@ -1,0 +1,141 @@
+/* --- VARIABLES --- */
+:root {
+    --bordeaux: #660601;
+    --beige: #FEF5E5;
+    --blanc: #FFFFFF;
+}
+
+/* --- STRUCTURE --- */
+.split-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    position: relative;
+}
+
+.pane {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* --- TITRES OVERLAP --- */
+.side-title {
+    position: absolute;
+    top: 10%;
+    font-family: 'Playfair Display', serif;
+    font-size: 5.5rem;
+    white-space: nowrap;
+}
+
+.left-align {
+    right: 20px;
+    color: var(--beige);
+}
+
+.right-align {
+    left: 20px;
+    color: var(--bordeaux);
+}
+
+/* --- COULEURS --- */
+.love-pane {
+    background-color: var(--bordeaux);
+    color: var(--beige);
+}
+
+.friendship-pane {
+    background-color: var(--beige);
+    color: var(--bordeaux);
+}
+
+/* --- CONTENU --- */
+.content {
+    max-width: 400px;
+    margin-top: 80px;
+}
+
+.emoji {
+    font-size: 5rem;
+    margin-bottom: 20px;
+}
+
+.category-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.align-right {
+    font-family: 'Poppins', sans-serif;
+    text-align: left;
+    font-size: 1rem;
+    margin-bottom: 35px;
+    line-height: 1.5;
+}
+
+/* --- BOUTONS --- */
+.btn {
+    display: inline-block;
+    padding: 18px 45px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-white {
+    background-color: var(--beige);
+    color: var(--bordeaux);
+}
+
+.btn-dark {
+    background-color: var(--bordeaux);
+    color: var(--blanc);
+}
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+    .split-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .pane {
+        min-height: 50vh;
+        padding: 60px 20px;
+        flex: none;
+    }
+
+    .side-title {
+        position: relative;
+        top: 0;
+        font-size: 3rem;
+        white-space: normal;
+        margin-bottom: 20px;
+    }
+
+    .left-align, .right-align {
+        right: auto;
+        left: auto;
+        text-align: center;
+        color: inherit;
+    }
+
+    .content {
+        margin-top: 0;
+    }
+
+    .align-right {
+        text-align: center;
+    }
+}

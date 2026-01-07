@@ -1,0 +1,165 @@
+:root {
+    --bordeaux: #660601;
+    --beige: #FEF5E5;
+    --blanc: #FFFFFF;
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body, html { 
+    height: 100%; 
+    font-family: 'Poppins', sans-serif; 
+    overflow: hidden; 
+}
+
+.split-container { 
+    display: flex; 
+    height: 100vh; 
+    width: 100%; 
+}
+
+.pane {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centre le bloc de contenu horizontalement */
+    justify-content: center;
+    text-align: center; /* Par défaut, tout est centré */
+}
+
+/* --- TITRE DU HAUT --- */
+.side-title {
+    position: absolute;
+    top: 10%;
+    font-family: 'Playfair Display', serif;
+    font-size: 5.5rem;
+    white-space: nowrap;
+}
+
+.left-align { right: 20px; color: var(--beige); }
+.right-align { left: 20px; color: var(--bordeaux); }
+
+/* --- COULEURS DES PANNEAUX --- */
+.love-pane { background-color: var(--bordeaux); color: var(--beige); }
+.friendship-pane { background-color: var(--beige); color: var(--bordeaux); }
+
+/* --- CONTENU --- */
+.content { 
+    max-width: 400px; 
+    margin-top: 80px;
+}
+
+.emoji { font-size: 5rem; margin-bottom: 20px; }
+
+.category-title {
+    font-size: 2.8rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: inherit;
+}
+
+/* SEUL LE LOREM IPSUM EST ALIGNÉ À DROITE */
+.align-right {
+    text-align: left;
+    font-size: 1rem;
+    margin-bottom: 35px;
+    line-height: 1.5;
+    color: inherit;
+    opacity: 0.9;
+}
+
+/* --- BOUTONS --- */
+.btn {
+    display: inline-block;
+    padding: 18px 45px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-white { background-color: var(--beige); color: var(--bordeaux); }
+.btn-dark { background-color: var(--bordeaux); color: var(--blanc); }
+.btn:hover { transform: scale(1.05); }
+
+/*Responsive*/
+@media (max-width: 768px) {
+    /* On permet le défilement vertical sur mobile */
+    body, html {
+        overflow-y: auto;
+        height: auto;
+    }
+
+    /* Les deux panneaux s'empilent verticalement */
+    .split-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    /* Chaque panneau prend au moins 50% de la hauteur de l'écran */
+    .pane {
+        min-height: 50vh;
+        padding: 60px 20px;
+        flex: none;
+    }
+
+    /* Le titre géant "Vous êtes plutôt quoi ?" */
+    .side-title {
+        position: relative; /* Il sort du mode absolu pour se placer au centre */
+        top: 0;
+        font-size: 3rem; /* On réduit la taille pour mobile */
+        white-space: normal;
+        margin-bottom: 20px;
+        line-height: 1.1;
+    }
+
+    .left-align, .right-align {
+        right: auto;
+        left: auto;
+        text-align: center;
+        color: inherit; /* Utilise la couleur du panneau parent */
+    }
+
+    /* Ajustement du bloc de contenu */
+    .content {
+        margin-top: 0;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .emoji {
+        font-size: 3.5rem;
+    }
+
+    .category-title {
+        font-size: 2rem;
+    }
+
+    /* Le texte de description est centré sur mobile */
+    .align-right {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 0 10px;
+    }
+
+    /* Les boutons prennent toute la largeur pour être plus faciles à cliquer */
+    .btn {
+        width: 100%;
+        max-width: 300px; /* On limite quand même pour ne pas qu'ils soient trop longs */
+        text-align: center;
+    }
+}
+
+/* Pour les très petits écrans (iPhone SE, etc.) */
+@media (max-width: 480px) {
+    .side-title {
+        font-size: 2.2rem;
+    }
+}

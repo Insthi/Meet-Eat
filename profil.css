@@ -1,0 +1,172 @@
+:root { 
+    --bg-beige: #FFFAED; 
+    --main-red: #660601; 
+    --black: #000000;
+    --white: #FFFFFF;
+}
+
+body { 
+    background-color: var(--bg-beige);
+    color: var(--black); 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    margin: 0; 
+    padding: 0;
+}
+
+/* BARRE DE NAVIGATION BEIGE */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 60px;
+    background-color: var(--bg-beige);
+    border-bottom: 1px solid rgba(102, 6, 1, 0.1);
+    height: 80px;
+}
+
+.logo-section { flex: 1; }
+.logo-section img { height: 60px; }
+
+nav {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--black);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+nav a:hover { color: var(--main-red); }
+
+.nav-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.nav-right i { font-size: 1.4rem; color: var(--main-red); }
+
+/* CONTENEUR */
+.container { 
+    max-width: 850px; 
+    margin: 0 auto; 
+    padding: 40px 20px; 
+    text-align: center; 
+}
+
+.btn-back {
+    background: var(--main-red);
+    color: white;
+    padding: 8px 25px;
+    border-radius: 15px;
+    text-decoration: none;
+    float: left;
+    font-size: 0.9rem;
+}
+
+/* PHOTO PROFIL */
+.profile-header { position: relative; display: inline-block; margin-top: 20px; }
+.profile-img {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--white);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.edit-icons { position: absolute; top: 10px; right: -10px; display: flex; gap: 5px; }
+.edit-icons i { 
+    background: var(--white); 
+    color: var(--main-red);
+    border-radius: 50%; padding: 7px; font-size: 0.8rem; 
+    border: 1px solid var(--main-red); 
+    cursor: pointer; 
+}
+
+h1 { font-family: 'Georgia', serif; font-size: 2rem; margin: 30px 0; clear: both; }
+hr { border: 0; border-top: 1px solid var(--main-red); margin: 40px 0; width: 100%; opacity: 0.2; }
+
+/* SECTIONS */
+.section-title { text-align: left; font-size: 1.4rem; font-weight: bold; margin-bottom: 5px; }
+.edit-link { 
+    text-align: left; 
+    display: block; 
+    color: var(--main-red); 
+    font-size: 0.85rem; 
+    margin-bottom: 20px; 
+    text-decoration: underline; 
+    font-weight: 500; 
+}
+
+/* CASES EN BLANC */
+.bio-box {
+    background: var(--white);
+    border: 1.5px solid var(--main-red);
+    border-radius: 15px;
+    padding: 25px;
+    text-align: left;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.info-card {
+    background: var(--white);
+    border: 1.5px solid var(--main-red);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    text-align: left;
+}
+
+.info-card i {
+    width: 30px;
+    font-size: 1.1rem;
+    margin-right: 12px;
+    text-align: center;
+    color: var(--main-red);
+}
+
+/* BOUTON DÉCONNECTER EN BAS */
+.logout-container {
+    margin: 50px 0;
+    text-align: center;
+}
+
+.btn-logout-bottom {
+    background: var(--main-red);
+    color: white;
+    padding: 12px 40px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.btn-logout-bottom:hover { transform: scale(1.05); }
+
+footer {
+    margin-top: 40px;
+    font-size: 0.85rem;
+    text-align: left;
+    border-top: 1px solid rgba(102, 6, 1, 0.1);
+    padding: 30px 0;
+}
+
+.social-icons { margin-top: 15px; font-size: 1.4rem; display: flex; gap: 20px; }
+.social-icons i { color: var(--main-red); cursor: pointer; }
