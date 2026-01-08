@@ -2,7 +2,7 @@
 session_start();
 require 'db.php';
 
-// Vérification de la session
+// 1. Vérification de la session
 if (!isset($_SESSION['id_user'])) { 
     header('Location: login.php'); 
     exit; 
@@ -11,41 +11,47 @@ if (!isset($_SESSION['id_user'])) {
 $id_user = $_SESSION['id_user'];
 
 try {
-    // On récupère l'email (table user) et tout le reste (table profil)
+    // 2. Récupération des infos utilisateur et profil
+    // Note : On utilise les noms de colonnes de ton SQL (nom, prenom, bio, photo, etc.)
     $stmt = $pdo->prepare("SELECT u.email, p.* FROM user u JOIN profil p ON u.id_user = p.id_user WHERE u.id_user = ?");
     $stmt->execute([$id_user]);
     $user = $stmt->fetch();
 
-    // Si l'utilisateur n'a pas encore de profil
     if (!$user) {
-        header('Location: logout.php'); 
+        // Si pas de profil, on déconnecte ou on redirige vers inscription
+        header('Location: login.php'); 
         exit;
     }
 
-    // Récupération du quiz
+    // 3. Récupération des réponses au quiz pour afficher les traits de personnalité
     $stmt_quiz = $pdo->prepare("SELECT reponse FROM reponse_quiz WHERE id_user = ?");
     $stmt_quiz->execute([$id_user]);
-    $reponses_quiz = $stmt_quiz->fetchAll();
+    $reponses_quiz = $stmt_quiz->fetchAll(PDO::FETCH_COLUMN);
+
 } catch (PDOException $e) { 
     die("Erreur : " . $e->getMessage()); 
 }
 
-// Calcul de l'âge
-$age = !empty($user['date_naissance']) ? (new DateTime($user['date_naissance']))->diff(new DateTime())->y . ' ans' : 'À définir';
-
-// Fonction de sécurité pour l'affichage
-function getSafeVal($data, $key, $suffix = "") {
-    return (isset($data[$key]) && !empty($data[$key])) ? htmlspecialchars($data[$key]) . $suffix : "À définir";
+// 4. Calcul de l'âge
+$age = 'Âge non défini';
+if (!empty($user['date_naissance'])) {
+    $date_naiss = new DateTime($user['date_naissance']);
+    $aujourdhui = new DateTime();
+    $age = $date_naiss->diff($aujourdhui)->y . ' ans';
 }
+
+// 5. Gestion de la photo de profil
+$photo_profil = !empty($user['photo_url']) ? 'UPLOADS/' . $user['photo_url'] : 'IMAGES/default-avatar.png';
 ?>
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Profil - Meet&Eat</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Mon Profil - Meet Eat</title>
     <link rel="stylesheet" href="profil.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -55,94 +61,69 @@ function getSafeVal($data, $key, $suffix = "") {
         </div>
         <nav>
             <a href="accueil.php">Accueil</a>
-            <a href="#">Concept</a>
-            <a href="#">Catégories</a>
+            <a href="restaurants.php">Restaurants</a>
             <a href="index-test.php">Mes réservations</a>
-            <a href="#">Contact</a>
+            <a href="chat.php">Messages</a>
         </nav>
         <div class="nav-right">
-            <a href="profil.php"><i class="fa-regular fa-user"></i></a>
+            <a href="profil.php" class="active"><i class="fa-solid fa-user"></i></a>
         </div>
     </header>
 
-    <div class="container">
-        <a href="accueil.php" class="btn-back">Retour</a>
+    <main class="profile-container">
         
         <div class="profile-header">
-            <img src="<?= !empty($user['photo_url']) ? 'UPLOADS/'.$user['photo_url'] : 'IMAGES/default.png' ?>" class="profile-img">
-            <div class="edit-icons">
-                <i class="fa-solid fa-pencil"></i>
-                <i class="fa-solid fa-plus"></i>
+            <div class="avatar-container">
+                <img src="<?= htmlspecialchars($photo_profil) ?>" alt="Photo de profil" class="profile-pic">
+                <a href="updateprofil.php" class="edit-avatar-btn"><i class="fa-solid fa-camera"></i></a>
             </div>
+            
+            <h1 class="user-name">
+                <?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?>, <?= $age ?>
+            </h1>
+            <p class="user-meta">
+                <?= htmlspecialchars($user['pronoms']) ?> | <?= htmlspecialchars($user['orientation']) ?>
+            </p>
         </div>
 
-        <h1>Bienvenue, <?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?> !</h1>
-
-        <hr>
-
-        <div class="section-title">Informations publiques</div>
-        <a href="update_profil.php" class="edit-link"><i class="fa-solid fa-pencil"></i> Modifier mon profil public</a>
-
+        <div class="section-title">À propos de moi</div>
         <div class="bio-box">
-            <?= !empty($user['biographie']) ? nl2br(htmlspecialchars($user['biographie'])) : "Aucune biographie renseignée." ?>
+            <?= nl2br(htmlspecialchars($user['bio'] ?? "Aucune description pour le moment...")) ?>
         </div>
 
-        <div class="info-grid">
-            <div class="info-card"><i class="fa-regular fa-user"></i> <?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></div>
-            <div class="info-card"><i class="fa-regular fa-calendar"></i> <?= $age ?></div>
-            <div class="info-card"><i class="fa-solid fa-venus-mars"></i> <?= getSafeVal($user, 'genre') ?></div>
-            <div class="info-card"><i class="fa-regular fa-heart"></i> <?= getSafeVal($user, 'orientation') ?></div>
-            <div class="info-card"><i class="fa-solid fa-house"></i> <?= getSafeVal($user, 'ville') ?></div>
-            <div class="info-card"><i class="fa-solid fa-briefcase"></i> <?= getSafeVal($user, 'metier') ?></div>
-            <div class="info-card"><i class="fa-solid fa-magnifying-glass"></i> <?= getSafeVal($user, 'type_relation') ?></div>
-            <div class="info-card"><i class="fa-solid fa-user-tag"></i> <?= getSafeVal($user, 'religion') ?></div>
-        </div>
-
-        <hr>
-
-        <div class="section-title">Mon quiz</div>
-        <a href="choix.php" class="edit-link"><i class="fa-solid fa-pencil"></i> Repasser mon quiz</a>
-
-        <div class="info-grid">
-            <?php if ($reponses_quiz): ?>
-                <?php foreach ($reponses_quiz as $rep): ?>
-                    <div class="info-card"><i class="fa-solid fa-circle-info"></i> <?= htmlspecialchars($rep['reponse']) ?></div>
+        <div class="section-title">Mes traits de personnalité</div>
+        <div class="traits-container">
+            <?php if (!empty($reponses_quiz)): ?>
+                <?php foreach ($reponses_quiz as $trait): ?>
+                    <span class="trait-tag"><?= htmlspecialchars($trait) ?></span>
                 <?php endforeach; ?>
             <?php else: ?>
-                <p style="text-align:left; grid-column: span 2; opacity:0.6;">Aucun trait défini.</p>
+                <p style="opacity:0.6;">Faites le quiz pour afficher vos traits !</p>
             <?php endif; ?>
         </div>
 
         <hr>
 
-        <div class="section-title">Informations personnelles</div>
-        <a href="updateperso.php" class="edit-link"><i class="fa-solid fa-pencil"></i> Modifier mes accès</a>
-
+        <div class="section-title">Informations de compte</div>
         <div class="info-grid">
             <div class="info-card">
                 <i class="fa-solid fa-envelope"></i> <?= htmlspecialchars($user['email']) ?>
             </div>
             <div class="info-card">
-                <i class="fa-solid fa-lock"></i> Mot de passe (********)
+                <i class="fa-solid fa-lock"></i> Mot de passe : ••••••••
             </div>
         </div>
 
-        <div class="logout-container">
-            <a href="login.php" class="btn-logout-bottom">Se déconnecter</a>
+        <div class="actions-footer">
+            <a href="updateperso.php" class="btn-edit-info"><i class="fa-solid fa-pencil"></i> Modifier mes accès</a>
+            <a href="logout.php" class="btn-logout">Se déconnecter</a>
         </div>
 
-        <footer>
-            <div style="margin-bottom: 10px;">
-                <a href="#" style="color:inherit; text-decoration:none; display:block;">À propos de MeetEat</a>
-                <a href="#" style="color:inherit; text-decoration:none; display:block;">Conseils de rencontres</a>
-            </div>
-            <div class="social-icons">
-                <i class="fa-brands fa-x-twitter"></i>
-                <i class="fa-brands fa-instagram"></i>
-                <i class="fa-brands fa-youtube"></i>
-                <i class="fa-brands fa-linkedin"></i>
-            </div>
-        </footer>
-    </div>
+    </main>
+
+    <footer>
+        <p>© 2026 MeetEat. Tous droits réservés.</p>
+    </footer>
+
 </body>
 </html>

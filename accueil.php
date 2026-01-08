@@ -23,7 +23,8 @@ try {
 
     <header class="navigation-principale">
         <div class="marque-logo">
-            <img src="IMAGES/logomeeteat.png" alt="Logo" class="image-logo">
+            <img src="assets/logomeeteat.png" alt="Logo" class="image-logo">
+            <span class="texte-marque">MEET<br>EAT</span>
         </div>
         <nav class="liens-navigation">
             <a href="accueil.php">Accueil</a>
@@ -32,7 +33,7 @@ try {
             <a href="#">Contact</a>
         </nav>
         <div class="utilisateur-bouton">
-            <a href="login.php">👤</a>
+            <button class="bouton-icone-profil">👤</button>
         </div>
     </header>
 
@@ -124,7 +125,8 @@ try {
         <div class="contenu-modale modale-feedback">
             <button class="croix-fermer" id="boutonFermerCroix">&times;</button>
             <div class="logo-top-left">
-            <img src="assets/logo.webp" alt="Logo" class="image-logo">
+                <img src="assets/logomeeteat.png" alt="M">
+                <p>MEET<br>EAT</p>
             </div>
 
             <div id="etapeFormulaire">

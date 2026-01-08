@@ -26,18 +26,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
 
-            // 3. Insertion dans la table 'user'
+            // 3. Insertion dans la table 'user' (Correction nom de colonne : mot_de_passe)
             $stmtUser = $pdo->prepare("INSERT INTO user (email, mot_de_passe, date_creation) VALUES (?, ?, NOW())");
             $stmtUser->execute([$email, $hash]);
             $id_user = $pdo->lastInsertId();
 
-            // 4. Insertion dans la table 'profil'
-            $stmtProfil = $pdo->prepare("INSERT INTO profil (id_user, nom, prenom, date_naissance, pronoms, orientation, biographie) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmtProfil->execute([$id_user, $nom, $prenom, $date_naiss, $pronoms, $orientation, $biographie]);
+            // Gestion de l'upload photo
+            $photo_bdd = 'IMAGES/default.png';
+            if (isset($_FILES['photo_profil']) && $_FILES['photo_profil']['error'] === 0) {
+                $upload_dir = 'UPLOADS/';
+                if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+                $file_name = time() . '_' . $_FILES['photo_profil']['name'];
+                if (move_uploaded_file($_FILES['photo_profil']['tmp_name'], $upload_dir . $file_name)) {
+                    $photo_bdd = $upload_dir . $file_name;
+                }
+            }
+
+            // 4. Insertion dans la table 'profil' (Correction colonnes selon ton SQL)
+            $stmtProfil = $pdo->prepare("INSERT INTO profil (id_user, nom, prenom, date_naissance, pronoms, orientation, biographie, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmtProfil->execute([$id_user, $nom, $prenom, $date_naiss, $pronoms, $orientation, $biographie, $photo_bdd]);
 
             $pdo->commit();
 
-            // 5. Connexion auto et redirection
+            // 5. Connexion auto
             $_SESSION['id_user'] = $id_user;
             header('Location: profil.php');
             exit;
@@ -53,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -102,18 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs mb-1">Nom*</label>
-                                <input type="text" name="nom" required class="w-full p-2 rounded-xl text-black" placeholder="Moreau">
-                            </div>
-                            <div>
-                                <label class="block text-xs mb-1">Prénom*</label>
-                                <input type="text" name="prenom" required class="w-full p-2 rounded-xl text-black" placeholder="Victorine">
-                            </div>
-                            <div>
-                                <label class="block text-xs mb-1">Date de naissance*</label>
-                                <input type="date" name="date_naissance" required class="w-full p-2 rounded-xl text-black">
-                            </div>
+                            <div><label class="block text-xs mb-1">Nom*</label><input type="text" name="nom" required class="w-full p-2 rounded-xl text-black"></div>
+                            <div><label class="block text-xs mb-1">Prénom*</label><input type="text" name="prenom" required class="w-full p-2 rounded-xl text-black"></div>
+                            <div><label class="block text-xs mb-1">Date de naissance*</label><input type="date" name="date_naissance" required class="w-full p-2 rounded-xl text-black"></div>
                         </div>
 
                         <div class="space-y-4">
@@ -135,10 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <option value="les-deux">Les deux</option>
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-xs mb-1">Description*</label>
-                                <textarea name="description" required class="w-full p-2 rounded-xl text-black h-24" placeholder="Parlez-nous de vous..."></textarea>
-                            </div>
+                            <div><label class="block text-xs mb-1">Description*</label><textarea name="description" required class="w-full p-2 rounded-xl text-black h-24"></textarea></div>
                         </div>
 
                         <div>
@@ -160,23 +158,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="submit" class="mt-6 bg-[#c49a8d] text-white px-12 py-2 rounded-full font-semibold hover:bg-[#b08578] transition shadow-lg">Valider l'inscription</button>
                         </div>
                     </div>
-
-                    <div id="hobbyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                        <div class="bg-cream rounded-3xl p-6 max-w-md w-full">
-                            <h2 class="serif-title text-2xl text-dark-red mb-4 text-center">Plus de passions</h2>
-                            <div class="flex flex-wrap gap-2 mb-6">
-                                <?php 
-                                $extras = ['Photo', 'Musique', 'Cinéma', 'Jeux Vidéo', 'Peinture', 'Danse', 'Yoga'];
-                                foreach($extras as $k => $h): ?>
-                                    <input type="checkbox" name="hobbies[]" value="<?= $h ?>" id="ex<?= $k ?>" class="hidden hobby-checkbox">
-                                    <label for="ex<?= $k ?>" class="bg-dark-red/10 text-dark-red px-3 py-1 rounded-full text-sm cursor-pointer border border-dark-red/20"><?= $h ?></label>
-                                <?php endforeach; ?>
-                            </div>
-                            <button type="button" onclick="toggleModal()" class="w-full bg-dark-red text-white py-2 rounded-xl font-bold">Terminer</button>
-                        </div>
-                    </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <div id="hobbyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-cream rounded-3xl p-6 max-w-md w-full">
+            <h2 class="serif-title text-2xl text-dark-red mb-4 text-center">Plus de passions</h2>
+            <div class="flex flex-wrap gap-2 mb-6">
+                <?php 
+                $extras = ['Photo', 'Musique', 'Cinéma', 'Jeux Vidéo', 'Peinture', 'Danse', 'Yoga'];
+                foreach($extras as $k => $h): ?>
+                    <input type="checkbox" name="hobbies[]" value="<?= $h ?>" id="ex<?= $k ?>" class="hidden hobby-checkbox">
+                    <label for="ex<?= $k ?>" class="bg-dark-red/10 text-dark-red px-3 py-1 rounded-full text-sm cursor-pointer border border-dark-red/20"><?= $h ?></label>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" onclick="toggleModal()" class="w-full bg-dark-red text-white py-2 rounded-xl font-bold">Terminer</button>
         </div>
     </div>
 

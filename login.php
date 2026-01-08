@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php'; // On récupère la connexion $pdo
+require 'db.php'; 
 
 $error = null;
 
@@ -9,17 +9,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
 
     if (!empty($email) && !empty($password)) {
-        // 1. On cherche l'utilisateur par son email
+        // Utilisation de 'mot_de_passe' comme défini dans ton SQL
         $stmt = $pdo->prepare("SELECT id_user, mot_de_passe FROM user WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        // 2. Si l'utilisateur existe, on vérifie le mot de passe
         if ($user && password_verify($password, $user['mot_de_passe'])) {
-            // Succès : On enregistre l'ID en session
             $_SESSION['id_user'] = $user['id_user'];
-            
-            // Redirection vers le profil
             header('Location: profil.php');
             exit;
         } else {

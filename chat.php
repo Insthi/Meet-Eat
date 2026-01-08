@@ -5,7 +5,16 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$id_user_connecte = 1; // À remplacer par $_SESSION['id_user'] en production
+// Sécurité : Redirection si non connecté
+if (!isset($_SESSION['id_user'])) {
+    // Pour tes tests, on force l'ID 1 si la session est vide, 
+    // mais à terme il faudra décommenter la redirection
+    $id_user_connecte = 1; 
+    // header('Location: login.php'); exit;
+} else {
+    $id_user_connecte = $_SESSION['id_user'];
+}
+
 $id_discussion_actuelle = isset($_GET['id']) ? (int)$_GET['id'] : 1;
 
 // --- 1. LOGIQUE POUR QUITTER LA DISCUSSION ---
@@ -16,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_quitter'])) {
     exit;
 }
 
-// --- 2. LOGIQUE POUR RE-CONTACTER (RECHERCHER OU CRÉER UN CHAT PRIVÉ) ---
+// --- 2. LOGIQUE POUR RE-CONTACTER (CHAT PRIVÉ) ---
 if (isset($_GET['contact_id'])) {
     $id_ami = (int)$_GET['contact_id'];
     
@@ -25,20 +34,13 @@ if (isset($_GET['contact_id'])) {
         FROM discussion d
         JOIN participant_discussion p1 ON d.id_discussion = p1.id_discussion
         JOIN participant_discussion p2 ON d.id_discussion = p2.id_discussion
-        WHERE p1.id_user = ? AND p2.id_user = ? AND d.id_session IS NULL
+        WHERE p1.id_user = ? AND p2.id_user = ? AND (d.id_session IS NULL OR d.id_session = 0)
     ");
     $stmt->execute([$id_user_connecte, $id_ami]);
     $discussion_existante = $stmt->fetch();
 
     if ($discussion_existante) {
-        $id_disc = $discussion_existante['id_discussion'];
-        $check = $pdo->prepare("SELECT * FROM participant_discussion WHERE id_discussion = ? AND id_user = ?");
-        $check->execute([$id_disc, $id_user_connecte]);
-        if (!$check->fetch()) {
-            $pdo->prepare("INSERT INTO participant_discussion (id_discussion, id_user) VALUES (?, ?)")
-                ->execute([$id_disc, $id_user_connecte]);
-        }
-        header("Location: chat.php?id=" . $id_disc);
+        header("Location: chat.php?id=" . $discussion_existante['id_discussion']);
     } else {
         $pdo->prepare("INSERT INTO discussion (nom_groupe) VALUES ('Chat Privé')")->execute();
         $nouvel_id = $pdo->lastInsertId();
@@ -49,18 +51,17 @@ if (isset($_GET['contact_id'])) {
     exit;
 }
 
-// --- 3. ENVOI DE MESSAGE OU PHOTO ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action_quitter'])) {
-    $contenu = $_POST['message'] ?? null;
+// --- 3. ENVOI DE MESSAGE ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
+    $contenu = trim($_POST['message']);
     $image_url = null;
 
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
         $upload_dir = 'UPLOADS/';
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
         $file_name = uniqid('IMG_') . '.' . pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION);
-        $dest_path = $upload_dir . $file_name;
-        if (move_uploaded_file($_FILES['image_file']['tmp_name'], $dest_path)) {
-            $image_url = $dest_path;
+        if (move_uploaded_file($_FILES['image_file']['tmp_name'], $upload_dir . $file_name)) {
+            $image_url = $upload_dir . $file_name;
         }
     }
 
@@ -76,68 +77,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action_quitter'])) {
 $search = $_GET['search'] ?? '';
 $search_param = "%$search%";
 
-// 4a. Mes Groupes
+// 4a. Mes Groupes (Basés sur les tables 'sessions' et 'restaurants' de ton SQL)
 $groupes_stmt = $pdo->prepare("
-    SELECT d.id_discussion, r.nom as resto_nom 
+    SELECT d.id_discussion, r.name as resto_nom 
     FROM discussion d 
     JOIN participant_discussion pd ON d.id_discussion = pd.id_discussion 
-    JOIN session s ON d.id_session = s.id_session 
-    JOIN restaurant r ON s.id_restaurant = r.id_restaurant 
-    WHERE pd.id_user = ? AND r.nom LIKE ?
+    JOIN sessions s ON d.id_session = s.id_session 
+    JOIN restaurants r ON s.id_restaurant = r.id 
+    WHERE pd.id_user = ? AND r.name LIKE ?
 ");
 $groupes_stmt->execute([$id_user_connecte, $search_param]);
 $mes_groupes = $groupes_stmt->fetchAll();
 
-// 4b. Messages Privés (Actifs)
+// 4b. Messages Privés
 $prives_stmt = $pdo->prepare("
     SELECT d.id_discussion, p.prenom, p.photo
     FROM discussion d
     JOIN participant_discussion pd1 ON d.id_discussion = pd1.id_discussion
     JOIN participant_discussion pd2 ON d.id_discussion = pd2.id_discussion
     JOIN profil p ON pd2.id_user = p.id_user
-    WHERE pd1.id_user = ? AND pd2.id_user != ? AND d.id_session IS NULL AND p.prenom LIKE ?
+    WHERE pd1.id_user = ? AND pd2.id_user != ? AND (d.id_session IS NULL OR d.id_session = 0) AND p.prenom LIKE ?
 ");
 $prives_stmt->execute([$id_user_connecte, $id_user_connecte, $search_param]);
 $mes_prives = $prives_stmt->fetchAll();
 
-// 4c. Démarrer une discussion (Contacts filtrés pour éviter les doublons)
-$contacts_stmt = $pdo->prepare("
-    SELECT id_user, prenom, photo 
-    FROM profil 
-    WHERE id_user != ? 
-    AND prenom LIKE ? 
-    AND id_user NOT IN (
-        SELECT pd2.id_user
-        FROM discussion d
-        JOIN participant_discussion pd1 ON d.id_discussion = pd1.id_discussion
-        JOIN participant_discussion pd2 ON d.id_discussion = pd2.id_discussion
-        WHERE pd1.id_user = ? AND d.id_session IS NULL
-    )
-    LIMIT 15
-");
-$contacts_stmt->execute([$id_user_connecte, $search_param, $id_user_connecte]);
+// 4c. Liste des contacts pour démarrer un chat
+$contacts_stmt = $pdo->prepare("SELECT id_user, prenom, photo FROM profil WHERE id_user != ? AND prenom LIKE ? LIMIT 10");
+$contacts_stmt->execute([$id_user_connecte, $search_param]);
 $tous_les_contacts = $contacts_stmt->fetchAll();
 
-// --- 5. INFOS DU CHAT ACTUEL ET MESSAGES ---
-$query = $pdo->prepare("
-    SELECT d.*, r.nom AS resto_nom, r.photo AS resto_photo, s.date_session,
+// --- 5. DONNÉES DU CHAT ACTUEL ---
+$query_info = $pdo->prepare("
+    SELECT d.*, r.name AS resto_nom,
     (SELECT p.prenom FROM profil p JOIN participant_discussion pd ON p.id_user = pd.id_user WHERE pd.id_discussion = d.id_discussion AND p.id_user != ? LIMIT 1) as nom_ami,
     (SELECT p.photo FROM profil p JOIN participant_discussion pd ON p.id_user = pd.id_user WHERE pd.id_discussion = d.id_discussion AND p.id_user != ? LIMIT 1) as photo_ami
     FROM discussion d
-    LEFT JOIN session s ON d.id_session = s.id_session
-    LEFT JOIN restaurant r ON s.id_restaurant = r.id_restaurant
+    LEFT JOIN sessions s ON d.id_session = s.id_session
+    LEFT JOIN restaurants r ON s.id_restaurant = r.id
     WHERE d.id_discussion = ?
 ");
-$query->execute([$id_user_connecte, $id_user_connecte, $id_discussion_actuelle]);
-$chat_info = $query->fetch(PDO::FETCH_ASSOC);
+$query_info->execute([$id_user_connecte, $id_user_connecte, $id_discussion_actuelle]);
+$chat_info = $query_info->fetch();
 
-$is_prive = is_null($chat_info['id_session'] ?? null);
-$titre_chat = $is_prive ? ($chat_info['nom_ami'] ?? "Chat Privé") : ($chat_info['resto_nom'] ?? "Groupe");
-$photo_chat = $is_prive ? ($chat_info['photo_ami'] ?? 'IMAGES/default.png') : ($chat_info['resto_photo'] ?? 'IMAGES/logo_groupe.png');
+$titre_chat = $chat_info['resto_nom'] ?? ($chat_info['nom_ami'] ?? "Discussion");
+$photo_chat = $chat_info['photo_ami'] ?? 'IMAGES/default.png';
 
-$msg_query = $pdo->prepare("SELECT m.*, p.prenom, p.photo FROM message m JOIN profil p ON m.id_user = p.id_user WHERE m.id_discussion = ? ORDER BY m.date_envoi ASC");
-$msg_query->execute([$id_discussion_actuelle]);
-$messages = $msg_query->fetchAll(PDO::FETCH_ASSOC);
+$messages = [];
+if ($id_discussion_actuelle) {
+    $msg_query = $pdo->prepare("SELECT m.*, p.prenom, p.photo FROM message m JOIN profil p ON m.id_user = p.id_user WHERE m.id_discussion = ? ORDER BY m.date_envoi ASC");
+    $msg_query->execute([$id_discussion_actuelle]);
+    $messages = $msg_query->fetchAll();
+}
 ?>
 
 <!DOCTYPE html>
@@ -151,66 +141,49 @@ $messages = $msg_query->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="toggleSettings()">&times;</span>
-            <h3>Paramètres</h3>
-            
-            <div class="setting-item">
-                <span>Notifications</span>
-                <label class="switch">
-                    <input type="checkbox" id="notifToggle" checked onchange="updateBell()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="group-info-card">
-                <?php if (!$is_prive && $chat_info): ?>
-                    <p><i class="fa-solid fa-utensils"></i> <?php echo htmlspecialchars($chat_info['resto_nom']); ?></p>
-                    <p><i class="fa-solid fa-calendar"></i> <?php echo date('d/m/Y', strtotime($chat_info['date_session'])); ?></p>
-                <?php elseif ($is_prive && $chat_info): ?>
-                    <p>Discussion privée avec <?php echo htmlspecialchars($chat_info['nom_ami']); ?></p>
-                <?php endif; ?>
-            </div>
-
+    <div id="settingsModal" class="modal" style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
+        <div style="background:white; padding:30px; border-radius:15px; text-align:center;">
+            <h3>Options</h3>
             <form method="POST">
-                <button type="submit" name="action_quitter" class="leave-btn">Quitter la discussion</button>
+                <button type="submit" name="action_quitter" style="background:#660601; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Quitter la discussion</button>
             </form>
+            <button onclick="toggleSettings()" style="margin-top:15px; background:none; border:none; text-decoration:underline; cursor:pointer;">Fermer</button>
         </div>
     </div>
 
     <aside class="sidebar">
-        <div class="logo-container"><img src="IMAGES/logoinverse.png"></div>
-        <form class="search-container" method="GET" action="chat.php">
+        <div class="logo-container"><img src="IMAGES/logoinverse.png" alt="Logo"></div>
+        
+        <form class="search-container" method="GET">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" name="search" class="search-bar" placeholder="Rechercher..." value="<?php echo htmlspecialchars($search); ?>">
+            <input type="text" name="search" class="search-bar" placeholder="Rechercher..." value="<?= htmlspecialchars($search) ?>">
         </form>
         
         <div class="discussion-list">
             <p class="section-title">Mes Groupes</p>
             <?php foreach ($mes_groupes as $g): ?>
-                <a href="chat.php?id=<?php echo $g['id_discussion']; ?>" class="discussion-item <?php echo ($g['id_discussion'] == $id_discussion_actuelle) ? 'active' : ''; ?>">
-                    <?php echo htmlspecialchars($g['resto_nom']); ?>
+                <a href="chat.php?id=<?= $g['id_discussion'] ?>" class="discussion-item <?= ($g['id_discussion'] == $id_discussion_actuelle) ? 'active' : '' ?>">
+                    <?= htmlspecialchars($g['resto_nom']) ?>
                 </a>
             <?php endforeach; ?>
 
             <p class="section-title">Messages Privés</p>
             <?php foreach ($mes_prives as $p): ?>
-                <a href="chat.php?id=<?php echo $p['id_discussion']; ?>" class="discussion-item <?php echo ($p['id_discussion'] == $id_discussion_actuelle) ? 'active' : ''; ?>">
+                <a href="chat.php?id=<?= $p['id_discussion'] ?>" class="discussion-item <?= ($p['id_discussion'] == $id_discussion_actuelle) ? 'active' : '' ?>">
                     <div class="user-row">
-                        <img src="<?php echo $p['photo']; ?>" class="mini-avatar">
-                        <span><?php echo htmlspecialchars($p['prenom']); ?></span>
+                        <img src="<?= $p['photo'] ?>" class="mini-avatar">
+                        <span><?= htmlspecialchars($p['prenom']) ?></span>
                     </div>
                 </a>
             <?php endforeach; ?>
 
-            <p class="section-title">Démarrer une discussion</p>
+            <p class="section-title">Nouveau Chat</p>
             <?php foreach ($tous_les_contacts as $c): ?>
-                <a href="chat.php?contact_id=<?php echo $c['id_user']; ?>" class="discussion-item">
-                    <div class="user-row" style="opacity: 0.8;">
-                        <img src="<?php echo $c['photo']; ?>" class="mini-avatar">
-                        <span><?php echo htmlspecialchars($c['prenom']); ?></span>
-                        <i class="fa-solid fa-plus" style="margin-left: auto; font-size: 10px;"></i>
+                <a href="chat.php?contact_id=<?= $c['id_user'] ?>" class="discussion-item">
+                    <div class="user-row" style="opacity:0.7;">
+                        <img src="<?= $c['photo'] ?>" class="mini-avatar">
+                        <span><?= htmlspecialchars($c['prenom']) ?></span>
+                        <i class="fa-solid fa-plus" style="margin-left:auto;"></i>
                     </div>
                 </a>
             <?php endforeach; ?>
@@ -220,8 +193,8 @@ $messages = $msg_query->fetchAll(PDO::FETCH_ASSOC);
     <main class="chat-main">
         <header class="chat-header">
             <div class="header-info">
-                <img src="<?php echo $photo_chat; ?>" class="resto-photo-header">
-                <h2><?php echo htmlspecialchars($titre_chat); ?></h2>
+                <img src="<?= $photo_chat ?>" class="resto-photo-header">
+                <h2><?= htmlspecialchars($titre_chat) ?></h2>
             </div>
             <div class="header-icons">
                 <i id="bellIcon" class="fa-regular fa-bell" onclick="quickBellToggle()"></i>
@@ -230,17 +203,16 @@ $messages = $msg_query->fetchAll(PDO::FETCH_ASSOC);
         </header>
 
         <section class="messages-container" id="chatBox">
-            <?php if (empty($messages)): ?>
-                <div style="text-align: center; margin-top: 50px; opacity: 0.5;">Commencez la conversation...</div>
-            <?php endif; ?>
             <?php foreach ($messages as $m): ?>
-                <div class="message-row <?php echo ($m['id_user'] == $id_user_connecte) ? 'me' : 'others'; ?>">
-                    <img src="<?php echo $m['photo']; ?>" class="avatar-msg">
+                <div class="message-row <?= ($m['id_user'] == $id_user_connecte) ? 'me' : 'others' ?>">
+                    <img src="<?= $m['photo'] ?>" class="avatar-msg">
                     <div class="bubble-wrapper">
                         <div class="bubble">
-                            <?php if ($m['image_url']): ?><img src="<?php echo $m['image_url']; ?>" class="chat-image"><?php endif; ?>
-                            <?php echo htmlspecialchars($m['contenu']); ?>
-                            <span class="msg-time"><?php echo date('H:i', strtotime($m['date_envoi'])); ?></span>
+                            <?php if ($m['image_url']): ?>
+                                <img src="<?= $m['image_url'] ?>" class="chat-image" style="max-width:200px; display:block; margin-bottom:5px; border-radius:10px;">
+                            <?php endif; ?>
+                            <?= htmlspecialchars($m['contenu']) ?>
+                            <span class="msg-time"><?= date('H:i', strtotime($m['date_envoi'])) ?></span>
                         </div>
                     </div>
                 </div>
@@ -263,19 +235,15 @@ $messages = $msg_query->fetchAll(PDO::FETCH_ASSOC);
 
         function toggleSettings() {
             const m = document.getElementById('settingsModal');
-            m.style.display = (m.style.display === "block") ? "none" : "block";
-        }
-
-        function updateBell() {
-            const isChecked = document.getElementById('notifToggle').checked;
-            const bell = document.getElementById('bellIcon');
-            bell.className = isChecked ? "fa-regular fa-bell" : "fa-solid fa-bell-slash";
+            m.style.display = (m.style.display === "flex") ? "none" : "flex";
         }
 
         function quickBellToggle() {
-            const checkbox = document.getElementById('notifToggle');
-            checkbox.checked = !checkbox.checked;
-            updateBell();
+            const bell = document.getElementById('bellIcon');
+            bell.classList.toggle('fa-regular');
+            bell.classList.toggle('fa-solid');
+            bell.classList.toggle('fa-bell');
+            bell.classList.toggle('fa-bell-slash');
         }
     </script>
 </body>

@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';
-$dbname = 'Meet&Eat';
-$user = 'root';
-$pass = 'root';
+$host   = 'localhost';
+$dbname = 'meet-eat'; // Doit être identique au nom créé dans phpMyAdmin
+$user   = 'root';
+$pass   = ''; 
 
 try {
     $pdo = new PDO(
@@ -10,10 +10,12 @@ try {
         $user,
         $pass,
         [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
         ]
     );
 } catch (PDOException $e) {
     die("Erreur BDD : " . $e->getMessage());
 }
+?>

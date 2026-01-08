@@ -1,45 +1,45 @@
 <?php
-
 session_start();
 require 'db.php';
 
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['choix'])) {
-    $id_q = $id_question; // L'ID actuel de la question
-    $rep_texte = $_POST['choix_texte']; // On récupère le texte du bouton
-
-    $ins = $pdo->prepare("INSERT INTO reponse_quiz (id_user, id_question, type_quiz, reponse) VALUES (?, ?, 'amitie', ?)");
-    $ins->execute([$_SESSION['id_user'], $id_q, $rep_texte]);
-
-    header("Location: quizlove.php?q=" . ($id_question + 1));
-    exit;
-} 
-/* --- PROGRESSION --- */
-
 $id_question = isset($_GET['q']) ? (int)$_GET['q'] : 0;
 
+/* --- ENREGISTREMENT DE LA RÉPONSE --- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['choix'])) {
+    $id_q_repondue = (int)$_POST['id_question_actuelle'];
+    $choix_index = (int)$_POST['choix'];
+
+    // Récupération du texte de la réponse
+    $stmt_text = $pdo->prepare("SELECT choix_$choix_index FROM quiz_amitie WHERE id_question = ?");
+    $stmt_text->execute([$id_q_repondue]);
+    $rep_texte = $stmt_text->fetchColumn();
+
+    if ($rep_texte && isset($_SESSION['id_user'])) {
+        // Nettoyage avant insertion
+        $del = $pdo->prepare("DELETE FROM reponse_quiz WHERE id_user = ? AND id_question = ? AND type_quiz = 'amitie'");
+        $del->execute([$_SESSION['id_user'], $id_q_repondue]);
+
+        // Insertion du texte
+        $ins = $pdo->prepare("INSERT INTO reponse_quiz (id_user, id_question, type_quiz, reponse) VALUES (?, ?, 'amitie', ?)");
+        $ins->execute([$_SESSION['id_user'], $id_q_repondue, $rep_texte]);
+    }
+
+    // On reste bien sur quizfriends.php pour la suite
+    header("Location: quizfriends.php?q=" . ($id_q_repondue + 1));
+    exit;
+} 
+
+/* --- PROGRESSION ET RÉCUPÉRATION --- */
 $total_questions = $pdo->query("SELECT COUNT(*) FROM quiz_amitie")->fetchColumn();
 
 if ($id_question === 0) { 
     $_SESSION['reponses_amitie'] = []; 
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['choix'])) {
-    $id_repondue = $id_question - 1;
-
-    if ($id_repondue >= 1) { 
-        $_SESSION['reponses_amitie'][$id_repondue] = $_POST['choix']; 
-    }
-}
-
-/* --- RÉCUPÉRATION --- */
-
 $requete = $pdo->prepare("SELECT * FROM quiz_amitie WHERE id_question = ?");
 $requete->execute([$id_question]);
 $question = $requete->fetch(PDO::FETCH_ASSOC);
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="fr">
@@ -83,8 +83,8 @@ $question = $requete->fetch(PDO::FETCH_ASSOC);
                 </p>
 
                 <div class="form-actions" style="flex-direction: column; gap: 20px;">
-                    <a href="reservation.php" class="btn-main">Réserver maintenant</a>
-                    <a href="index.php" class="btn-sub">Continuer ma visite</a>
+                    <a href="index-test.php" class="btn-main">Réserver maintenant</a>
+                    <a href="profil.php" class="btn-sub">Voir mon profil</a>
                 </div>
             </div>
 
@@ -105,7 +105,8 @@ $question = $requete->fetch(PDO::FETCH_ASSOC);
                 <?= htmlspecialchars($question['question']) ?>
             </h1>
 
-            <form method="POST" action="quizfriends.php?q=<?= $id_question + 1 ?>" autocomplete="off">
+            <form method="POST" action="quizfriends.php?q=<?= $id_question ?>" autocomplete="off">
+                <input type="hidden" name="id_question_actuelle" value="<?= $id_question ?>">
                 
                 <div class="options-wrapper">
 
@@ -113,9 +114,7 @@ $question = $requete->fetch(PDO::FETCH_ASSOC);
                         <?php if(!empty($question["choix_$i"])): ?>
                             
                             <label class="option-card">
-                                <input type="radio" name="choix" value="<?= $i ?>" 
-                                    <?= (($_SESSION['reponses_amitie'][$id_question] ?? null) == $i) ? 'checked' : '' ?> 
-                                    required>
+                                <input type="radio" name="choix" value="<?= $i ?>" required>
                                 <div class="design-pill">
                                     <?= htmlspecialchars($question["choix_$i"]) ?>
                                 </div>
