@@ -21,21 +21,25 @@ try {
 </head>
 <body>
 
-    <header class="navigation-principale">
-        <div class="marque-logo">
-            <img src="assets/logomeeteat.png" alt="Logo" class="image-logo">
-            <span class="texte-marque">MEET<br>EAT</span>
-        </div>
-        <nav class="liens-navigation">
-            <a href="accueil.php">Accueil</a>
-            <a href="#">Discussions</a>
-            <a href="#">Témoignages</a>
-            <a href="#">Contact</a>
-        </nav>
-        <div class="utilisateur-bouton">
-            <button class="bouton-icone-profil">👤</button>
-        </div>
-    </header>
+   <header class="navigation-principale">
+    <div class="marque-logo">
+        <img src="assets/logomeeteat.png" alt="Logo" class="image-logo">
+        <span class="texte-marque">MEET<br>EAT</span>
+    </div>
+    <nav class="liens-navigation">
+        <a href="accueil.php">Accueil</a>
+        <a href="chat.php">Discussions</a>
+        <a href="#temoignages">Témoignages</a>
+        <a href="#">Contact</a>
+    </nav>
+    <div class="utilisateur-bouton">
+    <?php if (isset($_SESSION['id_user'])): ?>
+        <a href="profil.php"><button class="bouton-icone-profil">👤</button></a>
+    <?php else: ?>
+        <a href="login.php"><button class="bouton-icone-profil">👤</button></a>
+    <?php endif; ?>
+</div>
+</header>
 
     <main>
         <section class="section-hero">

@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['choix'])) {
     $rep_texte = $stmt_text->fetchColumn();
 
     if ($rep_texte && isset($_SESSION['id_user'])) {
-        // Nettoyage avant insertion
+        // Nettoyage avant insertion pour éviter le Duplicate Entry
         $del = $pdo->prepare("DELETE FROM reponse_quiz WHERE id_user = ? AND id_question = ? AND type_quiz = 'amitie'");
         $del->execute([$_SESSION['id_user'], $id_q_repondue]);
 
@@ -24,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['choix'])) {
         $ins->execute([$_SESSION['id_user'], $id_q_repondue, $rep_texte]);
     }
 
-    // On reste bien sur quizfriends.php pour la suite
     header("Location: quizfriends.php?q=" . ($id_q_repondue + 1));
     exit;
 } 
@@ -115,7 +114,7 @@ $question = $requete->fetch(PDO::FETCH_ASSOC);
                             
                             <label class="option-card">
                                 <input type="radio" name="choix" value="<?= $i ?>" required>
-                                <div class="design-pill">
+                                <div class=\"design-pill\">
                                     <?= htmlspecialchars($question["choix_$i"]) ?>
                                 </div>
                             </label>

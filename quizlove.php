@@ -7,17 +7,16 @@ $id_question = isset($_GET['q']) ? (int)$_GET['q'] : 0;
 
 /* --- ENREGISTREMENT DE LA RÉPONSE --- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['choix'])) {
-    // On utilise un champ caché ou l'ID calculé juste avant
     $id_q_repondue = (int)$_POST['id_question_actuelle'];
     $choix_index = (int)$_POST['choix'];
 
-    // Récupérer le texte de la réponse choisie dans la BDD pour l'enregistrer proprement
+    // Récupérer le texte de la réponse choisie dans la BDD
     $stmt_text = $pdo->prepare("SELECT choix_$choix_index FROM quiz_amour WHERE id_question = ?");
     $stmt_text->execute([$id_q_repondue]);
     $rep_texte = $stmt_text->fetchColumn();
 
     if ($rep_texte && isset($_SESSION['id_user'])) {
-        // Supprimer l'ancienne réponse pour cette question précise (évite les doublons)
+        // Supprimer l'ancienne réponse pour cette question précise (évite l'erreur Duplicate entry)
         $del = $pdo->prepare("DELETE FROM reponse_quiz WHERE id_user = ? AND id_question = ? AND type_quiz = 'amour'");
         $del->execute([$_SESSION['id_user'], $id_q_repondue]);
 
@@ -86,7 +85,7 @@ $question = $query->fetch();
 
                 <div class="form-actions" style="flex-direction: column; gap: 20px;">
                     <a href="index-test.php" class="btn-main">Réserver maintenant</a>
-                    <a href="profil.php" class="btn-sub">Continuer ma visite</a>
+                    <a href="profil.php" class="btn-sub">Voir mon profil</a>
                 </div>
             </div>
 
