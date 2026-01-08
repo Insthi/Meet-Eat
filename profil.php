@@ -1,160 +1,169 @@
 <?php
 session_start();
-require 'db.php'; // Connexion PDO
+require 'db.php';
 
-if(!isset($_SESSION['id_user'])){
-    header('Location: login.php');
-    exit;
+// 1. Vérification de la session
+if (!isset($_SESSION['id_user'])) { 
+    header('Location: login.php'); 
+    exit; 
 }
 
-// Récupération du profil
-$stmt = $pdo->prepare("SELECT * FROM users JOIN profils ON users.id_user = profils.id_user WHERE users.id_user = ?");
-$stmt->execute([$_SESSION['id_user']]);
-$profil = $stmt->fetch();
+$id_user = $_SESSION['id_user'];
 
-// Hobbies
-$hobbies = $pdo->query("SELECT * FROM hobbies")->fetchAll();
-$userHobbies = $pdo->prepare("SELECT id_hobby FROM profils_hobbies WHERE id_user = ?");
-$userHobbies->execute([$_SESSION['id_user']]);
-$userHobbies = $userHobbies->fetchAll(PDO::FETCH_COLUMN);
+try {
+    // 2. Récupération des infos utilisateur (email) et profil (tout le reste)
+    $stmt = $pdo->prepare("SELECT u.email, p.* FROM user u JOIN profil p ON u.id_user = p.id_user WHERE u.id_user = ?");
+    $stmt->execute([$id_user]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        header('Location: logout.php'); 
+        exit;
+    }
+
+    // 3. Récupération des traits du quiz
+    $stmt_quiz = $pdo->prepare("SELECT reponse FROM reponse_quiz WHERE id_user = ?");
+    $stmt_quiz->execute([$id_user]);
+    $reponses_quiz = $stmt_quiz->fetchAll();
+} catch (PDOException $e) { 
+    die("Erreur : " . $e->getMessage()); 
+}
+
+// 4. Calcul de l'âge dynamique
+$age = !empty($user['date_naissance']) ? (new DateTime($user['date_naissance']))->diff(new DateTime())->y . ' ans' : 'À définir';
+
+// 5. Fonction de sécurité pour l'affichage (évite les erreurs si champ vide)
+function getSafeVal($data, $key, $suffix = "") {
+    return (isset($data[$key]) && !empty($data[$key])) ? htmlspecialchars($data[$key]) . $suffix : "À définir";
+}
 ?>
+
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>MeetEat — Profil</title>
-  <link rel="stylesheet" href="profil_styles.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - Meet&Eat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="profil.css">
 </head>
 <body>
-<div class="bg-qm"></div>
-<div class="page">
-  <header>
-    <div class="brand">
-      <div class="mark">M</div>
-      <div><small>MEET</small><small>EAT</small></div>
-    </div>
-    <div class="top-actions">
-      <div class="icon-user" title="Compte">👤</div>
-      <button class="btn dark" onclick="window.location.href='logout.php'">Se déconnecter</button>
-    </div>
-  </header>
 
-  <main>
-    <div class="profile">
-      <div class="avatar-wrap" id="avatarWrap">
-        <img id="avatarImg" src="<?= htmlspecialchars($profil['photo'] ?: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=70') ?>" alt="Photo de profil"/>
-        <button class="icon-btn" id="editPhotoBtn" title="Modifier la photo">✎</button>
-      </div>
-      <div>
-        <h1>
-          Bienvenue, 
-          <span id="fullName"><?= htmlspecialchars($profil['prenom'] . ' ' . $profil['nom']) ?></span> !
-          <button class="icon-btn small" data-field="prenom" data-last="<?= htmlspecialchars($profil['prenom']) ?>">✎</button>
-          <button class="icon-btn small" data-field="nom" data-last="<?= htmlspecialchars($profil['nom']) ?>">✎</button>
-        </h1>
-        <div class="sub">
-          <span class="badge" id="ville"><?= htmlspecialchars($profil['ville'] ?? '-') ?></span>
-          <button class="icon-btn small" data-field="ville" data-last="<?= htmlspecialchars($profil['ville'] ?? '') ?>">✎</button>
-          <span class="badge" id="relation"><?= htmlspecialchars($profil['relation'] ?? '-') ?></span>
-          <button class="icon-btn small" data-field="relation" data-last="<?= htmlspecialchars($profil['relation'] ?? '') ?>">✎</button>
-          <?php if($userHobbies): ?>
-            <?php foreach($userHobbies as $id): ?>
-              <?php
-                $h = array_filter($hobbies, fn($h) => $h['id_hobby']==$id);
-                $h = array_values($h)[0] ?? null;
-                if($h) echo '<span class="badge">'.htmlspecialchars($h['nom_hobby']).'</span>';
-              ?>
-            <?php endforeach; ?>
-          <?php endif; ?>
+    <header>
+        <div class="logo-section">
+            <img src="assets/logomeeteat.png" alt="Logo">
         </div>
-      </div>
-    </div>
-
-    <div class="hr"></div>
-
-    <section>
-      <div class="section-head">
-        <div class="section-title">Biographie</div>
-        <button class="icon-btn" id="editBioBtn">✎</button>
-      </div>
-      <div class="bio-card">
-        <textarea id="bioText" disabled><?= htmlspecialchars($profil['biographie'] ?? '') ?></textarea>
-      </div>
-    </section>
-
-    <section>
-      <div class="section-head">
-        <div class="section-title">Sécurité</div>
-      </div>
-      <div class="panel">
-        <div class="chips" style="grid-template-columns:1fr 1fr; gap:12px;">
-          <div class="chip" style="align-items:center;">
-            <span style="opacity:.8">ⓘ</span>
-            <input type="email" id="emailField" value="<?= htmlspecialchars($profil['email']) ?>" disabled style="border:0;outline:0;background:transparent;width:100%;font-size:10px;color:var(--ink)"/>
-            <button class="icon-btn small" data-field="email" data-last="<?= htmlspecialchars($profil['email']) ?>">✎</button>
-          </div>
+        <nav>
+            <a href="accueil.php">Accueil</a>
+            <a href="#">Concept</a>
+            <a href="#">Catégories</a>
+            <a href="#">Mes réservations</a>
+            <a href="#">Contact</a>
+        </nav>
+        <div class="nav-right">
+            <a href="profil.php"><i class="fa-regular fa-user"></i></a>
         </div>
-      </div>
-    </section>
-  </main>
+    </header>
+
+    <div class="container">
+        <a href="accueil.php" class="btn-back">Retour</a>
+        
+        <div class="profile-header">
+    <img src="<?= !empty($user['photo_url']) ? 'UPLOADS/'.$user['photo_url'] : 'IMAGES/default.png' ?>" 
+         class="profile-img" 
+         id="profilePreview">
+    
+    <div class="edit-icons">
+        <i class="fa-solid fa-pencil" onclick="document.getElementById('fileInput').click();" style="cursor:pointer;"></i>
+        <i class="fa-solid fa-plus" onclick="document.getElementById('fileInput').click();" style="cursor:pointer;"></i>
+    </div>
 </div>
 
+<input type="file" id="fileInput" name="photo" style="display:none;" onchange="previewImage(this)">
+<input type="hidden" name="current_photo" value="<?= htmlspecialchars($user['photo_url']) ?>">
+
+<input type="file" id="fileInput" name="photo" style="display:none;" onchange="previewImage(this)">
+<input type="hidden" name="current_photo" value="<?= htmlspecialchars($user['photo_url']) ?>">
 <script>
-// Modifier bio
-document.getElementById('editBioBtn').addEventListener('click', ()=>{
-  const bio = document.getElementById('bioText');
-  bio.disabled = !bio.disabled;
-  if(!bio.disabled){
-    bio.focus();
-  } else {
-    // Envoyer via fetch/AJAX à save_bio.php
-    fetch('save_profile.php', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({field:'biographie', value: bio.value})
-    }).then(r=>r.json()).then(d=>{ if(d.success) alert("✅ Biographie mise à jour"); });
-  }
-});
-
-// Modifier champs un par un
-document.querySelectorAll('button.icon-btn.small').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const field = btn.dataset.field;
-    const last = btn.dataset.last;
-    let newVal = prompt("Modifier "+field, last);
-    if(newVal !== null){
-      btn.dataset.last = newVal;
-      // Mettre à jour l'affichage
-      if(field==='prenom' || field==='nom'){
-        const prenom = field==='prenom'?newVal:document.querySelector('[data-field="prenom"]').dataset.last;
-        const nom = field==='nom'?newVal:document.querySelector('[data-field="nom"]').dataset.last;
-        document.getElementById('fullName').textContent = prenom + ' ' + nom;
-      } else {
-        document.getElementById(field).textContent = newVal;
-      }
-      // Envoyer à PHP
-      fetch('save_profile.php',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({field, value:newVal})
-      }).then(r=>r.json()).then(d=>{ if(d.success) console.log(field+" sauvegardé") });
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            // Met à jour l'image dans le cercle bordeaux
+            document.getElementById('profilePreview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
     }
-  });
-});
-
-// Modifier photo
-document.getElementById('editPhotoBtn').addEventListener('click', ()=>{
-  const url = prompt("Nouvelle URL de la photo");
-  if(url){
-    document.getElementById('avatarImg').src = url;
-    fetch('save_profile.php',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({field:'photo', value:url})
-    }).then(r=>r.json()).then(d=>{ if(d.success) alert("✅ Photo mise à jour"); });
-  }
-});
+}
 </script>
+
+        <h1>Bienvenue, <?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?> !</h1>
+
+        <hr>
+
+        <div class="section-title">Informations publiques</div>
+        <a href="updateprofil.php" class="edit-link"><i class="fa-solid fa-pencil"></i> Modifier mon profil public</a>
+
+        <div class="bio-box">
+            <?= !empty($user['biographie']) ? nl2br(htmlspecialchars($user['biographie'])) : "Aucune biographie renseignée." ?>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card"><i class="fa-regular fa-user"></i> <?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></div>
+            <div class="info-card"><i class="fa-regular fa-calendar"></i> <?= $age ?></div>
+            <div class="info-card"><i class="fa-solid fa-venus-mars"></i> <?= getSafeVal($user, 'genre') ?></div>
+            <div class="info-card"><i class="fa-regular fa-heart"></i> <?= getSafeVal($user, 'orientation') ?></div>
+            <div class="info-card"><i class="fa-solid fa-house"></i> <?= getSafeVal($user, 'ville') ?></div>
+            <div class="info-card"><i class="fa-solid fa-briefcase"></i> <?= getSafeVal($user, 'metier') ?></div>
+            <div class="info-card"><i class="fa-solid fa-magnifying-glass"></i> <?= getSafeVal($user, 'type_relation') ?></div>
+            <div class="info-card"><i class="fa-solid fa-user-tag"></i> <?= getSafeVal($user, 'religion') ?></div>
+        </div>
+
+        <hr>
+
+        <div class="section-title">Mon quiz</div>
+        <a href="choix.php" class="edit-link"><i class="fa-solid fa-pencil"></i> Repasser mon quiz</a>
+
+        <div class="info-grid">
+            <?php if ($reponses_quiz): ?>
+                <?php foreach ($reponses_quiz as $rep): ?>
+                    <div class="info-card"><i class="fa-solid fa-circle-info"></i> <?= htmlspecialchars($rep['reponse']) ?></div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p style="text-align:left; grid-column: span 2; opacity:0.6;">Aucun trait défini.</p>
+            <?php endif; ?>
+        </div>
+
+        <hr>
+
+        <div class="section-title">Informations personnelles</div>
+        <a href="updateperso.php" class="edit-link"><i class="fa-solid fa-pencil"></i> Modifier mes accès</a>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <i class="fa-solid fa-envelope"></i> <?= htmlspecialchars($user['email']) ?>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-lock"></i> Mot de passe (********)
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <a href="logout.php" class="btn-logout-bottom">Se déconnecter</a>
+        </div>
+
+        <footer>
+            <div style="margin-bottom: 10px;">
+                <a href="#" style="color:inherit; text-decoration:none; display:block;">À propos de MeetEat</a>
+                <a href="#" style="color:inherit; text-decoration:none; display:block;">Conseils de rencontres</a>
+            </div>
+            <div class="social-icons">
+                <i class="fa-brands fa-x-twitter"></i>
+                <i class="fa-brands fa-instagram"></i>
+                <i class="fa-brands fa-youtube"></i>
+                <i class="fa-brands fa-linkedin"></i>
+            </div>
+        </footer>
+    </div>
 </body>
 </html>
